@@ -48,6 +48,6 @@ stages:
           - checkout: self
 
           - script: |
-              ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+              ansible-playbook -i /home/dhanu/shared/ansible/inventory.ini ansible/playbook.yml
             displayName: "Run Ansible Playbook"       
 
