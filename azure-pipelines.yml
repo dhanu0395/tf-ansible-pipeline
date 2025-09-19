@@ -36,11 +36,9 @@ stages:
               environmentServiceNameAzureRM: 'DjAzureSPNConnection'
           - script: |
               cd $(TF_WORKING_DIR)
+              mkdir -p /home/dhanu/shared/ansible
+              terraform output -raw ansible_inventory > /home/dhanu/shared/ansible/inventory.ini
               ls
-              terraform output -raw ansible_inventory > ../ansible/inventory.ini
-              ls -l ../ansible
-            displayName: "Export Terraform outputs to Ansible inventory"
-
   - stage: config
     dependsOn: infra
     jobs:
