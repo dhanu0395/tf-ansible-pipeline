@@ -1,0 +1,53 @@
+trigger: none
+
+pool:
+  name: SelfHostedPool
+
+variables:
+  TF_WORKING_DIR: 'virtualMachine'
+
+stages:
+  - stage: infra
+    jobs:
+      - job: terraformJob
+        displayName: "Provision Infrastructure with Terraform"
+        steps:
+          - checkout: self
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              backendServiceArm: 'DjAzureSPNConnection'
+              backendAzureRmStorageAccountName: 'dhanustorage03'
+              backendAzureRmContainerName: 'dhanucontainer'
+              backendAzureRmKey: 'vmstorage.tfstate'
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              environmentServiceNameAzureRM: 'DjAzureSPNConnection'
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(TF_WORKING_DIR)'
+              environmentServiceNameAzureRM: 'DjAzureSPNConnection'
+          - script: |
+              cd $(TF_WORKING_DIR)
+              terraform output -raw ansible_inventory > ../../ansible/inventory.ini
+            displayName: "Export Terraform outputs to Ansible inventory"
+
+  - stage: config
+    dependsOn: infra
+    jobs:
+      - job: ansibleJob
+        displayName: "Configure VMs with Ansible"
+        steps:
+          - checkout: self
+
+          - script: |
+              ansible-playbook -i ansible/inventory.ini ansible/playbook.yml
+            displayName: "Run Ansible Playbook"       
+
