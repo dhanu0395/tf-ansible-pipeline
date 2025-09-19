@@ -48,6 +48,7 @@ stages:
           - checkout: self
 
           - script: |
+              export ANSIBLE_HOST_KEY_CHECKING=False
               ansible-playbook -i /home/dhanu/shared/ansible/inventory.ini ansible/playbook.yml
             displayName: "Run Ansible Playbook"       
 
